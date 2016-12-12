@@ -59,3 +59,13 @@ func TestCase3(t *testing.T) {
 		t.Errorf("Expected %v to yield distance travelled of %v, got %v", ins, expectedDistance, d)
 	}
 }
+
+func TestCase4(t *testing.T) {
+	taxi := NewTaxi()
+	ins := "R8, R4, R4, R8"
+	taxi.FollowInstructions(ins)
+	expectedDistance := float64(4)
+	if d := taxi.DistanceFromFirstRepeatedPosition(); d != expectedDistance {
+		t.Errorf("Expected %v to yield distance travelled of %v, got %v", ins, expectedDistance, d)
+	}
+}

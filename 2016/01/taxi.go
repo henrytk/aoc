@@ -78,6 +78,7 @@ type Point struct {
 type Taxi struct {
 	Position  Point
 	Direction Compass
+	BeenTo    []Point
 }
 
 func NewTaxi() Taxi {
@@ -92,28 +93,46 @@ func (t *Taxi) FollowInstructions(instructions string) {
 	in := bip.Parse(instructions)
 	for _, i := range in {
 		t.Direction = t.Direction.Turn(i.Direction)
-		t.Drive(i.Steps)
+		for x := 0; x < i.Steps; x++ {
+			t.Drive()
+		}
 	}
 
 }
 
-func (t *Taxi) Drive(steps int) {
+func (t *Taxi) Drive() {
 	switch t.Direction.(type) {
 	case *North:
-		t.Position.Y = t.Position.Y + steps
+		t.Position.Y = t.Position.Y + 1
 	case *East:
-		t.Position.X = t.Position.X + steps
+		t.Position.X = t.Position.X + 1
 	case *South:
-		t.Position.Y = t.Position.Y - steps
+		t.Position.Y = t.Position.Y - 1
 	default:
-		t.Position.X = t.Position.X - steps
+		t.Position.X = t.Position.X - 1
 	}
+	t.BeenTo = append(t.BeenTo, t.Position)
 }
 
 func (t *Taxi) Distance() float64 {
-	x := math.Abs(float64(t.Position.X))
-	y := math.Abs(float64(t.Position.Y))
+	return distanceFromPoint(t.Position)
+}
+
+func distanceFromPoint(p Point) float64 {
+	x := math.Abs(float64(p.X))
+	y := math.Abs(float64(p.Y))
 	return x + y
+}
+
+func (t *Taxi) DistanceFromFirstRepeatedPosition() float64 {
+	positions := make(map[Point]bool)
+	for _, location := range t.BeenTo {
+		if _, ok := positions[location]; ok {
+			return distanceFromPoint(location)
+		}
+		positions[location] = true
+	}
+	return float64(0)
 }
 
 func main() {
@@ -124,4 +143,5 @@ func main() {
 	taxi := NewTaxi()
 	taxi.FollowInstructions(os.Args[1])
 	fmt.Fprintf(os.Stdout, "You have travelled a distance of %v\n", taxi.Distance())
+	fmt.Fprintf(os.Stdout, "The Easter Bunny HQ is %v blocks away\n", taxi.DistanceFromFirstRepeatedPosition())
 }
